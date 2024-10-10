@@ -12,3 +12,10 @@ npm install --save-dev nodemon                              # Install necessary 
 npm fund                                                    # Fund the npm packages
 sudo apt install nano -y                                    # Install nano
 sudo apt autoremove -y                                      # Autoremove extra packages
+sudo apt install git
+git clone https://github.com/SanskarSontakke/R-Pi-Dashboard.git
+cd R-Pi-Dashboard/
+cp -r public/ ../
+cp -r static/ ../
+cp server.js ../
+cd ../
