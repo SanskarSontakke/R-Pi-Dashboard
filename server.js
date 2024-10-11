@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const { exec } = require('child_process');
+const path = require('path');
 
 // Create an instance of Express
 const app = express();
@@ -12,30 +13,36 @@ const server = http.createServer(app);
 // Attach Socket.io to the server
 const io = socketIO(server);
 
-function getCpuUsage() {
-    exec('python3 /public/static/py/cpu_usage.py', (error, stdout, stderr) => {
+// Path to the Python script
+const pythonScriptPath = path.join(__dirname, 'public', 'static', 'py', 'cpu_usage.py');
+
+// Function to get CPU usage by executing the Python script
+function getCpuUsage(callback) {
+    exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing Python script: ${error}`);
-            return;
+            return callback(null);
         }
-
-        // Log the CPU usage
+        // Log the CPU usage and send data back through callback
         console.log(`CPU Core Usage: ${stdout}`);
+        callback(stdout.trim());  // Send CPU usage to the callback
     });
 }
 
-setInterval(getCpuUsage, 500);
 // Serve static files (like HTML, CSS, JS)
 app.use(express.static('public'));
 
 // Handle socket connections for real-time communication
 io.on('connection', (socket) => {
     console.log('A user connected');
-    
-    // Send data to the client (example)
+
+    // Send CPU data to the client every second
     setInterval(() => {
-        const randomCPU = Math.random() * 100;  // Example data
-        socket.emit('cpu_update', randomCPU);
+        getCpuUsage((cpuUsage) => {
+            if (cpuUsage) {
+                socket.emit('cpu_update', cpuUsage); // Emit the CPU usage data to the client
+            }
+        });
     }, 1000);
 
     socket.on('disconnect', () => {
