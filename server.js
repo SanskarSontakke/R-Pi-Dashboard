@@ -2,30 +2,22 @@ const express = require('express');
 const http = require('http');
 const socketIO = require('socket.io');
 const { exec } = require('child_process');
-const path = require('path');
 
 // Create an instance of Express
 const app = express();
-
-// Create an HTTP server
 const server = http.createServer(app);
-
-// Attach Socket.io to the server
 const io = socketIO(server);
 
-// Path to the Python script
-const pythonScriptPath = path.join(__dirname, 'public', 'static', 'py', 'cpu_usage.py');
-
-// Function to get CPU usage by executing the Python script
-function getCpuUsage(callback) {
-    exec(`python3 ${pythonScriptPath}`, (error, stdout, stderr) => {
+// Function to get CPU, Disk, and RAM usage from Python
+function getSystemStats(callback) {
+    exec('python3 ~/Dashboard/public/static/py/cpu_usage.py', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing Python script: ${error}`);
             return callback(null);
         }
-        // Log the CPU usage and send data back through callback
-        console.log(`CPU Core Usage: ${stdout}`);
-        callback(stdout.trim());  // Send CPU usage to the callback
+        // Parse the JSON output from Python
+        const stats = JSON.parse(stdout);
+        callback(stats);
     });
 }
 
@@ -36,11 +28,11 @@ app.use(express.static('public'));
 io.on('connection', (socket) => {
     console.log('A user connected');
 
-    // Send CPU data to the client every second
+    // Send actual CPU, Disk, and RAM data every second
     setInterval(() => {
-        getCpuUsage((cpuUsage) => {
-            if (cpuUsage) {
-                socket.emit('cpu_update', cpuUsage); // Emit the CPU usage data to the client
+        getSystemStats((stats) => {
+            if (stats) {
+                socket.emit('system_stats', stats);  // Send data to the client
             }
         });
     }, 1000);
@@ -50,10 +42,8 @@ io.on('connection', (socket) => {
     });
 });
 
-// Set the port for the server
-const PORT = process.env.PORT || 3000;
-
 // Start the server
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
