@@ -4,7 +4,6 @@ const storedLabels = ["", "", "", "", "", "", "", "", "", "", "", "", "", "", ""
 const CPUUsageData = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const DiskUsageData = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
 const RAMUsageData = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
-const socket = io();
 //===================================================================FUNCTIONS===================================================================//
 function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -216,65 +215,45 @@ const CPUCoreChart = new Chart(document.getElementById('CPUCoreChart').getContex
     }
 });
 //===================================================================INTERVAL====================================================================//
+// Fetch system stats every second and update charts/gauges
 setInterval(() => {
-    const newLabel = `Label ${storedLabels.length + 1}`;
-    const newRandomValue1 = getRandomNumber(0, 100);
-    const newRandomValue2 = getRandomNumber(0, 100);
-    const newRandomValue3 = getRandomNumber(0, 100);
+    fetch('/system-stats')
+        .then(response => response.json())
+        .then(data => {
+            console.log(data);
 
+            // Update the CPU Core Usage Bar Chart
+            CPUCoreChart.data.datasets[0].data = [data.cpu_usage[0]];  // Core 1
+            CPUCoreChart.data.datasets[1].data = [data.cpu_usage[1]];  // Core 2
+            CPUCoreChart.data.datasets[2].data = [data.cpu_usage[2]];  // Core 3
+            CPUCoreChart.data.datasets[3].data = [data.cpu_usage[3]];  // Core 4
+            CPUCoreChart.update();
 
-    storedLabels.push(newLabel);
-    CPUUsageData.push(newRandomValue1);
-    DiskUsageData.push(newRandomValue2);
-    RAMUsageData.push(newRandomValue3);
+            // Update the line chart for CPU, Disk, and RAM
+            const newLabel = `Label ${storedLabels.length + 1}`;
+            storedLabels.push(newLabel);
+            CPUUsageData.push(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU usage
+            DiskUsageData.push(data.disk_usage);
+            RAMUsageData.push(data.ram_usage);
 
-    if (storedLabels.length > maxDataPoints) {
-        storedLabels.shift();
-        CPUUsageData.shift();
-        DiskUsageData.shift();
-        RAMUsageData.shift();
-    }
+            if (storedLabels.length > maxDataPoints) {
+                storedLabels.shift();
+                CPUUsageData.shift();
+                DiskUsageData.shift();
+                RAMUsageData.shift();
+            }
 
-    UsageChart.data.labels = storedLabels;
-    UsageChart.data.datasets[0].data = CPUUsageData;
-    UsageChart.data.datasets[1].data = DiskUsageData;
-    UsageChart.data.datasets[2].data = RAMUsageData;
+            UsageChart.data.labels = storedLabels;
+            UsageChart.data.datasets[0].data = CPUUsageData;  // CPU Usage
+            UsageChart.data.datasets[1].data = DiskUsageData; // Disk Usage
+            UsageChart.data.datasets[2].data = RAMUsageData;  // RAM Usage
+            UsageChart.update();
 
-    UsageChart.update();
+            // Update the CPU Temperature Gauge
+            CPUTempGauge.set(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU temperature
+
+            // Update Room Temperature Gauge (if available)
+            RoomTempGauge.set(30);  // Static value, you can replace this with actual room temperature data if available
+        })
+        .catch(error => console.error('Error fetching system stats:', error));
 }, 1000);
-socket.on('system_stats', (data) => {
-    console.log(data);
-
-    // Update the CPU Core Usage Bar Chart
-    CPUCoreChart.data.datasets[0].data = [data.cpu_usage[0]];  // Core 1
-    CPUCoreChart.data.datasets[1].data = [data.cpu_usage[1]];  // Core 2
-    CPUCoreChart.data.datasets[2].data = [data.cpu_usage[2]];  // Core 3
-    CPUCoreChart.data.datasets[3].data = [data.cpu_usage[3]];  // Core 4
-    CPUCoreChart.update();
-
-    // Update the line chart for CPU, Disk, and RAM
-    const newLabel = `Label ${storedLabels.length + 1}`;
-    storedLabels.push(newLabel);
-    CPUUsageData.push(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU usage
-    DiskUsageData.push(data.disk_usage);
-    RAMUsageData.push(data.ram_usage);
-
-    if (storedLabels.length > maxDataPoints) {
-        storedLabels.shift();
-        CPUUsageData.shift();
-        DiskUsageData.shift();
-        RAMUsageData.shift();
-    }
-
-    UsageChart.data.labels = storedLabels;
-    UsageChart.data.datasets[0].data = CPUUsageData;  // CPU Usage
-    UsageChart.data.datasets[1].data = DiskUsageData; // Disk Usage
-    UsageChart.data.datasets[2].data = RAMUsageData;  // RAM Usage
-    UsageChart.update();
-
-    // Update the CPU Temperature Gauge
-    CPUTempGauge.set(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU temperature
-
-    // Update Room Temperature Gauge (Replace with actual room temperature if available)
-    RoomTempGauge.set(30);  // Static value, you can replace this with actual room temperature data if available
-});
