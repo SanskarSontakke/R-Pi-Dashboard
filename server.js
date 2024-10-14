@@ -5,7 +5,7 @@ const { exec } = require('child_process');
 const app = express();
 const server = http.createServer(app);
 
-// Serve static files (like HTML, CSS, JS)
+// Serve static files (HTML, CSS, JS)
 app.use(express.static('public'));
 
 // API endpoint to get system stats
@@ -24,7 +24,6 @@ app.get('/system-stats', (req, res) => {
 
 // Set the port for the server
 const PORT = process.env.PORT || 3000;
-
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });

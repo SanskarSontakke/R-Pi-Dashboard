@@ -214,9 +214,8 @@ const CPUCoreChart = new Chart(document.getElementById('CPUCoreChart').getContex
         }
     }
 });
-//===================================================================INTERVAL====================================================================//
-// Fetch system stats every second and update charts/gauges
-setInterval(() => {
+//====================================================================UPDATE=====================================================================//
+function fetchSystemStats() {
     fetch('/system-stats')
         .then(response => response.json())
         .then(data => {
@@ -229,7 +228,7 @@ setInterval(() => {
             CPUCoreChart.data.datasets[3].data = [data.cpu_usage[3]];  // Core 4
             CPUCoreChart.update();
 
-            // Update the line chart for CPU, Disk, and RAM
+            // Update the line chart for CPU, Disk, and RAM usage
             const newLabel = `Label ${storedLabels.length + 1}`;
             storedLabels.push(newLabel);
             CPUUsageData.push(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU usage
@@ -250,10 +249,15 @@ setInterval(() => {
             UsageChart.update();
 
             // Update the CPU Temperature Gauge
-            CPUTempGauge.set(data.cpu_usage.reduce((a, b) => a + b, 0) / data.cpu_usage.length);  // Average CPU temperature
+            if (data.cpu_temp !== null) {
+                CPUTempGauge.set(data.cpu_temp);  // Set the CPU temperature gauge
+            } else {
+                console.error("Could not retrieve CPU temperature");
+            }
 
             // Update Room Temperature Gauge (if available)
-            RoomTempGauge.set(30);  // Static value, you can replace this with actual room temperature data if available
+            RoomTempGauge.set(30);  // Static value, replace with real data if available
         })
         .catch(error => console.error('Error fetching system stats:', error));
-}, 1000);
+}
+setInterval(fetchSystemStats, 1000);

@@ -1,24 +1,28 @@
 import psutil
 import json
+import subprocess
+
+def get_cpu_temperature():
+    try:
+        temp = subprocess.check_output(["vcgencmd", "measure_temp"]).decode("UTF-8")
+        return float(temp.split('=')[1].split("'")[0])
+    except Exception as e:
+        print(f"Error getting CPU temperature: {e}")
+        return None
 
 def get_system_stats():
-    # CPU usage per core
     cpu_usage = psutil.cpu_percent(interval=1, percpu=True)
-    
-    # Disk usage
     disk_usage = psutil.disk_usage('/').percent
-
-    # RAM usage
     ram_usage = psutil.virtual_memory().percent
+    cpu_temp = get_cpu_temperature()
 
-    # Collect everything into a dictionary
     stats = {
-        'cpu_usage': cpu_usage,  # This will be an array with per-core data
+        'cpu_usage': cpu_usage,  # Array of CPU usage per core
         'disk_usage': disk_usage,
-        'ram_usage': ram_usage
+        'ram_usage': ram_usage,
+        'cpu_temp': cpu_temp  # CPU temperature
     }
-    
-    # Return the stats as JSON
+
     return json.dumps(stats)
 
 if __name__ == "__main__":
