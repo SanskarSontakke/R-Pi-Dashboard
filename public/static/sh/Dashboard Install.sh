@@ -1,7 +1,7 @@
 
 
 cd ~                                                             # Move to the root directory
-rm -r -f Dashboard/                                              # Remove the excess Git directory and files
+sudo rm -r -f Dashboard/                                              # Remove the excess Git directory and files
 mkdir Dashboard/
 cd Dashboard/                                                    # Move to the Dashboard directory
 git clone https://github.com/SanskarSontakke/R-Pi-Dashboard.git  # Clone the dashboard project from GitHub

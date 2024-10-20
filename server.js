@@ -10,7 +10,7 @@ app.use(express.static('public'));
 
 // API endpoint to get system stats
 app.get('/system-stats', (req, res) => {
-    exec('python3 /Dashboard/public/static/py/usage.py', (error, stdout, stderr) => {
+    exec('python3 ~/Dashboard/public/static/py/usage.py', (error, stdout, stderr) => {
         if (error) {
             console.error(`Error executing Python script: ${error}`);
             res.status(500).send('Server error');
