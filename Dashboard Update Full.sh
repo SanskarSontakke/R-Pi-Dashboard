@@ -13,6 +13,7 @@ sudo apt install python3-venv -y                                 # Install pytho
 sudo apt install python3-psutil -y                               # Install python3-psutil (if available)
 sudo apt install nodejs -y                                       # Install Node.js (JavaScript runtime)
 sudo apt install npm -y                                          # Install npm (Node.js package manager)
+sudo apt install sysstat -y                                      # Install sysstat
 cd ~                                                             # Move to the root directory
 sudo rm -r -f Dashboard/                                         # Remove the excess Git directory and files
 mkdir Dashboard/
@@ -29,4 +30,4 @@ npm init -y                                                      # Initialize np
 npm install express socket.io -y                                 # Install Express.js and Socket.IO for web app and real-time communication
 npm install --save-dev nodemon -y                                # Install nodemon as a dev dependency to auto-restart the server on changes
 npm fund                                                         # Display funding information for the installed npm packages (optional)
-echo "============================================================== Update Complete =============================================================="
+echo "==============================================================Full Update Complete =============================================================="
