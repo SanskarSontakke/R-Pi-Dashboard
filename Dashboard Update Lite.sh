@@ -14,6 +14,7 @@ cd ../                                                           # Move back to 
 git clone https://github.com/nopnop2002/Raspberry-tm1637
 cd Raspberry-tm1637
 cc -o tm1637 main.c tm1637.c -lwiringPi -lpthread
+cd ../
 rm -r -f R-Pi-Dashboard/                                         # Remove the excess Git directory and files
 npm init -y                                                      # Initialize npm in the Dashboard directory
 npm install express socket.io -y                                 # Install Express.js and Socket.IO for web app and real-time communication

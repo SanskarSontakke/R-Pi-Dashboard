@@ -1,9 +1,18 @@
 const express = require('express');
 const http = require('http');
-const { exec } = require('child_process');
+const { exec, spawn } = require('child_process');
 
 const app = express();
 const server = http.createServer(app);
+
+// Execute the shell script at startup and log its output
+exec('sh ~/Dashboard/public/static/sh/TempTm1637.sh > ~/Dashboard/public/static/logs/TempTm1637.log 2>&1 &', (error, stdout, stderr) => {
+    if (error) {
+        console.error(`Error starting TempTm1637.sh: ${error}`);
+    } else {
+        console.log('TempTm1637.sh started successfully');
+    }
+});
 
 // Serve static files (HTML, CSS, JS)
 app.use(express.static('public'));
